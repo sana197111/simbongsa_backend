@@ -8,7 +8,7 @@ from django.contrib.auth import update_session_auth_hash, authenticate, login, l
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import User, VolunteerEvent, Participation, Feedback\
+from .models import User, VolunteerEvent, Participation
 
 def display_csrf_token(request):
     return render(request, 'csrf_token_display.html')
@@ -42,11 +42,12 @@ def signup(request):
         username = data.get('username')
         password = data.get('password')
         email = data.get('email')
-        # 추가적인 데이터 처리 (예: 전화번호 등)
+        # 전화번호 입력란 추가
+        contact = data.get('contact')
 
         # 사용자 생성
         try:
-            user = User.objects.create_user(username, email, password)
+            user = User.objects.create_user(username, email, password, contact)
             # 추가적인 사용자 데이터 설정 (예: 프로필 정보 등)
             user.save()
 
@@ -63,7 +64,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, VolunteerEventSerializer
 
 @api_view(['GET', 'POST'])
 def user_list(request):
@@ -94,44 +95,55 @@ def become_superuser(request):
             # Redirect to a success page or any other page you desire
             messages.success(request, 'You are now a superuser!')
             return redirect('mypage')  
-            # (여기 수정해야함) Change 'home' to your desired URL
 
     return render(request, 'become_superuser.html')  
-    # (템플릿 만들어야 함!) Create a template for this view
 
-
+@api_view(['POST'])
 def upload_event(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        vol_start = request.POST.get('vol_start')
-        vol_end = request.POST.get('vol_end')
-        user_id = request.user.id # 이 부분은 로그인한 사용자의 organization_id로 수정해야 할 수도 있습니다.
-        location = request.POST.get('location')
-        apply_start = request.POST.get('apply_start')
-        apply_end = request.POST.get('apply_end')
-        event = VolunteerEvent(title=title, description=description, vol_start=vol_start, vol_end=vol_end, location=location, apply_start=apply_start, apply_end=apply_end, user_id=user_id)
-        event.save()
+        data = request.data.copy()
+        data['user_id'] = request.user.id
 
-        # 업로드 후 리다이렉트할 페이지 설정
-        return redirect('event_list')  # event_list는 예시
+        serializer = VolunteerEventSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
 
-    return render(request, 'upload_event.html')
+            # 성공 응답 반환
+            return Response({'message': '이벤트 업로드 성공'}, status=status.HTTP_201_CREATED)
+        else:
+            # 오류 응답 반환
+            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    # POST 요청이 아닌 경우의 처리
+    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['Get', 'PUT', 'DELETE'])
 def event_detail(request, event_id):
-    # 해당 이벤트의 상세 정보, 참여자, 피드백을 가져옴
-    event = get_object_or_404(VolunteerEvent, pk=event_id)
-    participations = Participation.objects.filter(event_id=event)
-    feedbacks = Feedback.objects.filter(event_id=event)
-
-    # event_detail.html 템플릿에 전달할 데이터를 정리
-    context = {'event': event, 'participations': participations, 'feedbacks': feedbacks}
+    try:
+        event = VolunteerEvent.objects.get(pk=event_id)
+    except VolunteerEvent.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
-    # 이벤트 상세 페이지 렌더링
-    return render(request, 'event_detail.html', context)
+    # Read 불러오기
+    if request.method == 'GET':
+        serializer = VolunteerEventSerializer(event)
+        return Response(serializer.data)
+    
+    # Update 수정하기
+    elif request.method == 'PUT':
+        serializer = VolunteerEventSerializer(event, data=request.data)
 
-    # 신청하기 눌렀을 때 (apply)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Delete 삭제하기
+    elif request.method == 'DELETE':
+        event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 
@@ -169,20 +181,5 @@ def accept_or_reject_application(request, participation_id, decision):
 
     return HttpResponse("Invalid request or permission denied.")
 
-def leave_feedback(request, event_id, participation_id):
-    if request.method == 'POST':
-        user_id = request.user.id
-        event = get_object_or_404(VolunteerEvent, pk=event_id)
-
-        # 참여한 이벤트인지 확인
-        participation = get_object_or_404(Participation, pk=participation_id, user_id=user_id, event_id=event)
-
-        comment = request.POST.get('comment')
-        rating = request.POST.get('rating')
-
-        feedback = Feedback(comment=comment, rating=rating, participation_id=participation, event_id=event)
-        feedback.save()
-
-        return redirect('event_detail', event_id=event_id)
-
-    return HttpResponse("Invalid request method.")
+def leave_feedback(request):
+    pass

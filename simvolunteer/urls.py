@@ -31,6 +31,7 @@ urlpatterns = [
     path('become_organization/', views.become_superuser, name='become_superuser'),  # 슈퍼유저 승급 뷰
     path('event/<int:event_id>/apply/', views.apply_for_event, name='apply_for_event'),  # 이벤트 신청 뷰
     path('application/<int:participation_id>/<str:decision>/', views.accept_or_reject_application, name='accept_or_reject_application'),  # 신청 수락/거절 뷰
-    path('event/<int:event_id>/feedback/<int:participation_id>/', views.leave_feedback, name='leave_feedback'),  # 피드백 남기기 뷰
-    path('display-csrf-token/', views.display_csrf_token, name='display_csrf_token')
+    # path('event/<int:event_id>/feedback/<int:participation_id>/', views.leave_feedback, name='leave_feedback'),  # 피드백 남기기 뷰
+    path('upload_event/', views.upload_event , name='upload_event'),
+    path('display-csrf-token/', views.display_csrf_token, name='display_csrf_token'),
 ]
