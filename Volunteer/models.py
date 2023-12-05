@@ -20,7 +20,7 @@ class VolunteerEvent(models.Model):
     vol_end = models.DateTimeField()
     apply_start = models.DateTimeField()
     apply_end = models.DateTimeField()
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
 class Participation(models.Model):
     participation_id = models.AutoField(primary_key=True)
