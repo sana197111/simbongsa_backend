@@ -108,7 +108,7 @@ def become_superuser(request):
 def upload_event(request):
     if request.method == 'POST':
         data = request.data.copy()
-        data['user_id'] = request.user.user_id
+        data['user'] = request.user.user_id
 
         serializer = VolunteerEventSerializer(data=data)
         if serializer.is_valid():

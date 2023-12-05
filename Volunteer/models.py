@@ -9,7 +9,7 @@ class Organization(models.Model):
 
 class User(AbstractUser):
     user_id = models.AutoField(primary_key=True)
-    contact = models.CharField(max_length=15)
+    contact = models.CharField(max_length=25)
     company = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True)
 
 class VolunteerEvent(models.Model):
@@ -17,6 +17,7 @@ class VolunteerEvent(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True)
     location = models.CharField(max_length=255, null=True)
+    mbti_type = models.CharField(max_length=25, null=True)
     vol_start = models.DateTimeField()
     vol_end = models.DateTimeField()
     apply_start = models.DateTimeField()
