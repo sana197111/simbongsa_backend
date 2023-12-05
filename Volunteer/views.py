@@ -123,6 +123,14 @@ def upload_event(request):
     # POST 요청이 아닌 경우의 처리
     return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET'])
+def volunteer_list_mbti(request,mbti_type):
+        if request.method == 'GET':
+            events = VolunteerEvent.objects.filter(mbti_type=mbti_type)
+            serializer = VolunteerEventSerializer(events, many=True)
+            return Response(serializer.data)
+        # GET 요청이 아닌 경우의 처리
+        return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['Get', 'PUT', 'DELETE'])
 def event_detail(request, event_id):

@@ -24,7 +24,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),  # 로그인 뷰 함수 지정
     path('logout/', views.logout_view, name='logout'),  # 로그아웃 뷰 함수 지정
     path('signup/', views.signup, name='signup'),  # 회원가입 뷰 함수 지정
-    # path('volunteerlist/', views.volunteer_list),  # 봉사 목록 뷰 함수 지정 (해당 뷰 함수 구현 필요)
+    path('volunteerlist/<str:mbti_type>/', views.volunteer_list_mbti, name='volunteerlist_mbti'),  # 봉사 목록 뷰 함수 지정 
     path('volunteer/<int:event_id>/', views.event_detail, name='event_detail'),  # 이벤트 상세 뷰 함수 지정
     path('api/users/', views.user_list, name='user_list'),  # 사용자 목록 API
     # path('mypage/', views.my_page),  # 마이 페이지 뷰 함수 지정 (해당 뷰 함수 구현 필요)
