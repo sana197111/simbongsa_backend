@@ -8,7 +8,7 @@ from django.contrib.auth import update_session_auth_hash, authenticate, login, l
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import User, VolunteerEvent, Participation
+from .models import User, VolunteerEvent, Participation, Organization
 
 def display_csrf_token(request):
     return render(request, 'csrf_token_display.html')
@@ -47,8 +47,9 @@ def signup(request):
 
         # 사용자 생성
         try:
-            user = User.objects.create_user(username, email, password, contact)
+            user = User.objects.create_user(username, email, password)
             # 추가적인 사용자 데이터 설정 (예: 프로필 정보 등)
+            user.contact = contact
             user.save()
 
             # 성공 응답 반환
@@ -84,26 +85,30 @@ def user_list(request):
 @api_view(['POST'])
 def become_superuser(request):
     if request.method == 'POST':
-        organization_id = request.POST.get('organization_id')
+        data = request.data
         user = request.user
+        name = data.get('company_name')
+        company_id = data.get('company_number')
 
-        # Check if the organization_id is correct (you might want to implement additional validation)
-        if organization_id == user.organization_id:
-            # Set the user as superuser
-            user.is_superuser = True
+        # 사업자 등록증 겹치는지 확인하기
+        try:
+            company = Organization.objects.get(company_id=company_id)
+            return Response({'error': '이미 존재하는 회사 번호입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Organization.DoesNotExist:
+            company = Organization.objects.create(company_id=company_id, name=name)
+            user.company = company
+            user.is_superuser = True            
             user.save()
 
-            # Redirect to a success page or any other page you desire
-            messages.success(request, 'You are now a superuser!')
-            return redirect('mypage')  
+        return Response({'message': 'Superuser로 업그레이드 및 회사 정보 업데이트 성공'}, status=status.HTTP_200_OK)
 
-    return render(request, 'become_superuser.html')  
+    return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def upload_event(request):
     if request.method == 'POST':
         data = request.data.copy()
-        data['user_id'] = request.user.id
+        data['user_id'] = request.user.user_id
 
         serializer = VolunteerEventSerializer(data=data)
         if serializer.is_valid():
@@ -150,7 +155,7 @@ def event_detail(request, event_id):
 @api_view(['POST'])
 def apply_for_event(request, event_id):
     if request.method == 'POST':
-        user_id = request.user.id
+        user_id = request.user.user_id
 
         # 이미 신청한 이벤트인지 확인
         existing_participation = Participation.objects.filter(user_id=user_id, event_id=event_id)
@@ -170,39 +175,26 @@ def apply_for_event(request, event_id):
 
 
 @api_view(['PUT'])
-def accept_or_reject_application(request, participation_id, decision):
-    if request.method == 'PUT' and request.user.is_superuser:
+def accept_or_reject_application(request, participation_id):
+    if request.method == 'PUT':
         participation = Participation.objects.get(pk=participation_id)
+        decision = request.data.get('decision')
 
         if decision == 'accept':
-            serializer = ParticipationSerializer(participation, status='Accepted')
-            serializer.save()
+            serializer = ParticipationSerializer(participation, data={'status': "Accepted"}, partial=True)
         elif decision == 'reject':
-            serializer = ParticipationSerializer(participation, status='Rejected')
+            serializer = ParticipationSerializer(participation, data={'status': "Rejected"}, partial=True)
+        else:
+            return Response({'error': 'Decision must be either "accept" or "reject"'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.is_valid():
             serializer.save()
-        return Response(serializer.data)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(['PUT'])
-def attend_or_absent_event(request, participation_id, decision):
-    if request.method == 'PUT' and request.user.is_superuser:
-        participation = Participation.objects.get(pk=participation_id)
-
-        if decision == 'attend':
-            participation.attendance = 'Attend'
-            participation.save()
-            serializer = ParticipationSerializer(participation, attendance='Attend')
-            serializer.save()
-        elif decision == 'absent':
-            participation.attendance = 'Absent'
-            participation.save()
-            serializer = ParticipationSerializer(participation, attendance='Absent')
-            serializer.save()
-        return Response(serializer.data)
-
-    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
 def leave_feedback(request):
     pass
