@@ -1,7 +1,7 @@
 # serializers.py
 
 from rest_framework import serializers
-from .models import User, VolunteerEvent, Participation, Feedback
+from .models import User, VolunteerEvent, Participation
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,9 +16,4 @@ class VolunteerEventSerializer(serializers.ModelSerializer):
 class ParticipationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participation
-        fields = '__all__'
-
-class FeedbackSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Feedback
         fields = '__all__'

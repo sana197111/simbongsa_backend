@@ -10,8 +10,10 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import os
 from dotenv import load_dotenv
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'Volunteer'
 ]
@@ -62,6 +65,21 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     # 다른 허용할 출처들...
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'user_id',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30), # 액세스 토큰 유효 시간
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # 리프레시 토큰 유효 시간
+    'ROTATE_REFRESH_TOKENS': False,                 # 리프레시 토큰 회전 사용 여부
+    # 기타 필요한 설정...
+}
 
 TEMPLATES = [
     {
