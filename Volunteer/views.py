@@ -105,7 +105,23 @@ def my_page(request):
         })
 
     # GET 요청이 아닌 경우의 처리
-    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD)
+    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def my_page_org(request):
+    if request.method == 'GET':
+        user_id = request.user.user_id
+        user = User.objects.get(user_id=user_id)
+        company_number = user.company.company_number
+        if company_number is not None:
+            events = VolunteerEvent.objects.filter(user_id=user_id)
+            serializer = VolunteerEventSerializer(events, many=True)
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+    # GET 요청이 아닌 경우의 처리
+    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -115,14 +131,14 @@ def become_superuser(request):
         data = request.data
         user = request.user
         name = data.get('company_name')
-        company_id = data.get('company_number')
+        company_number = data.get('company_number')
 
         # 사업자 등록증 겹치는지 확인하기
         try:
-            company = Organization.objects.get(company_id=company_id)
+            company = Organization.objects.get(company_number=company_number)
             return Response({'error': '이미 존재하는 회사 번호입니다.'}, status=status.HTTP_400_BAD_REQUEST)
         except Organization.DoesNotExist:
-            company = Organization.objects.create(company_id=company_id, name=name)
+            company = Organization.objects.create(company_number=company_number, name=name)
             user.company = company
             user.is_superuser = True            
             user.save()

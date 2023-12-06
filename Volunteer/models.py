@@ -22,7 +22,7 @@ class VolunteerEvent(models.Model):
     vol_end = models.DateTimeField()
     apply_start = models.DateTimeField()
     apply_end = models.DateTimeField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
 class Participation(models.Model):
     participation_id = models.AutoField(primary_key=True)
@@ -33,5 +33,5 @@ class Participation(models.Model):
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
     apply_date = models.DateTimeField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(VolunteerEvent, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    event_id = models.ForeignKey(VolunteerEvent, on_delete=models.CASCADE)

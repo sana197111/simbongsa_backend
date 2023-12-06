@@ -28,6 +28,7 @@ urlpatterns = [
     path('volunteer/<int:event_id>/', views.event_detail, name='event_detail'),  # 이벤트 상세 뷰 함수 지정
     path('api/users/', views.user_list, name='user_list'),  # 사용자 목록 API
     path('mypage/', views.my_page, name='mypage'),  # 마이 페이지 뷰 함수 지정
+    path('mypage/org/', views.my_page_org, name='mypage_org'),  # 마이 페이지_기업 뷰 함수 지정
     path('become_organization/', views.become_superuser, name='become_superuser'),  # 슈퍼유저 승급 뷰
     path('event/<int:event_id>/apply/', views.apply_for_event, name='apply_for_event'),  # 이벤트 신청 뷰
     path('application/<int:participation_id>/', views.accept_or_reject_application, name='accept_or_reject_application'),  # 신청 수락/거절 뷰
