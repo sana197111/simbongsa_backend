@@ -82,6 +82,33 @@ def user_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET'])
+def my_page(request):
+    if request.method == 'GET':
+        # user_id가 주어진 사용자의 참가신청 목록을 가져옵니다.
+        user_id = request.user.user_id
+        participations = Participation.objects.filter(user_id=user_id)
+
+        # 오늘 날짜를 기준으로 vol_end가 지난 것과 아닌 것을 나눕니다.
+        today = datetime.today()
+        past_events = participations.filter(event_id__vol_end__lt=today)
+        upcoming_events = participations.filter(event_id__vol_end__gte=today)
+
+        # 각 QuerySet을 serialize 합니다.
+        past_events_serializer = ParticipationSerializer(past_events, many=True)
+        upcoming_events_serializer = ParticipationSerializer(upcoming_events, many=True)
+
+        # serialize된 데이터를 반환합니다.
+        return Response({
+            'past_events': past_events_serializer.data,
+            'upcoming_events': upcoming_events_serializer.data,
+        })
+
+    # GET 요청이 아닌 경우의 처리
+    return Response({'error': '잘못된 요청'}, status=status.HTTP_400_BAD)
+
+
+
 @api_view(['POST'])
 def become_superuser(request):
     if request.method == 'POST':
