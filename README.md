@@ -1,2 +1,18 @@
-# simbongsa_backend
-# simbongsa_backend
+## 심봉사, 성향 기반 추천 봉사 서비스 (백엔드)
+
+### ℹ️ 설명
+
+- 성향 테스트 기반으로 봉사활동 추천 서비스 개발
+
+### 🦴 기술 스택
+
+- 언어 - Python, Javascript
+- 프레임워크 - React(프론트), tailwind css(CSS), Django백엔드)
+- 배포 - Netlify(프론트)
+- 자동화 및 배포 - Github
+- 기타 - Postman
+
+### 📈 역할 및 업무성과
+
+- 프론트엔드 100% 개발
+- 백엔드 50% 개발 (로그인/회원가입/마이페이지 기능)
